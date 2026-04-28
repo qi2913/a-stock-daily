@@ -16,6 +16,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from analysis.engine import analyze_market
+from analysis.premium import generate_premium_report, generate_premium_markdown
 from content.generator import (
     generate_daily_recap,
     generate_fund_valuation_report,
@@ -27,8 +28,8 @@ from publish.publisher import save_markdown, save_html, ensure_output_dirs
 def print_banner():
     print("""
 ╔══════════════════════════════════════════╗
-║     🤖 Auto Income Engine v0.2           ║
-║     Real Market Data → AI Content         ║
+║     🤖 Auto Income Engine v0.3           ║
+║     Real Data + Technicals = 💰          ║
 ╚══════════════════════════════════════════╝
 """)
 
@@ -84,13 +85,27 @@ def run(date_str=None):
     md_path3 = save_markdown(weekly, f"{date}-weekly-outlook.md", "weekly")
     print(f"   ✅ Markdown: {md_path3}")
     
+    # 4. Premium technical analysis
+    print("💎 生成增值技术分析报告...")
+    try:
+        premium = generate_premium_report()
+        premium_md = generate_premium_markdown()
+        md_path4 = save_markdown(premium_md, f"{date}-premium-analysis.md", "daily")
+        html_path3 = save_html(premium_md, f"{date}-premium-analysis.html", "daily",
+                               title=f"{date} 技术分析报告（付费版）")
+        print(f"   ✅ 技术指标: RSI={premium.get('sentiment', 'N/A').split('/')[0] if '/' in str(premium.get('sentiment', '')) else 'N/A'}")
+        print(f"   ✅ Markdown: {md_path4}")
+        print(f"   ✅ HTML: {html_path3}")
+    except Exception as e:
+        print(f"   ⚠️ Premium 模块出错: {e}")
+    
     print(f"\n{'='*50}")
-    print(f"✅ 全部完成！生成了 3 份报告")
+    print(f"✅ 全部完成！生成了报告（含免费版+付费版）")
     print(f"📁 输出目录: {os.path.join(os.path.dirname(__file__), 'output')}")
-    print(f"\n💡 下一步：")
-    print(f"   1. 部署到 GitHub Pages 获取SEO流量")
-    print(f"   2. 设置 cron 定时任务自动生成")
-    print(f"   3. 通过飞书推送付费订阅内容")
+    print(f"\n💡 赚钱路线：")
+    print(f"   1. 创建 GitHub 仓库 → 一键部署网站")
+    print(f"   2. 免费内容引流 → 付费订阅变现")
+    print(f"   3. cron 每日 17:00 自动运行")
     print(f"{'='*50}\n")
     
     return analysis
